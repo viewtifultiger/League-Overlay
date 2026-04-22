@@ -1,6 +1,7 @@
 from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
 from http.client import RemoteDisconnected
+from collections import Counter
 import ssl
 import json
 import time
@@ -39,7 +40,7 @@ def get_active_teamId(allgamedata_json):
     for player in allgamedata_json.get("allPlayers"):
         if player.get("riotId") == active_player_riotId:
             active_teamId = player.get("team")
-        return active_teamId
+            return active_teamId
 
 def print_snapshot(snapshot):
     print("Enemy Team:")
@@ -78,7 +79,24 @@ while True:
     updated_enemy_snapshot = build_snapshot(allgamedata_json.get("allPlayers"), active_teamId)
 
     if saved_enemy_snapshot != updated_enemy_snapshot:
+        saved_roster = set(saved_enemy_snapshot.keys())
+        updated_roster = set(updated_enemy_snapshot.keys())
+        if saved_roster != updated_roster:
+            # roster_changed = saved_roster.symmetric_difference(updated_roster)
+            pass
+        else:
+            for championName, item_list in saved_enemy_snapshot.items():
+                saved_item_list = Counter(item_list)
+                updated_item_list = Counter(updated_enemy_snapshot.get(championName))
+                if saved_item_list != updated_item_list:
+                    temp_updated_item_list = updated_item_list.copy()
+                    updated_item_list = updated_item_list - saved_item_list
+                    saved_item_list = saved_item_list - temp_updated_item_list
+                    print(championName + "'s items changed:")
+                    for new_item in updated_item_list.keys():
+                        print("+ " + new_item)
+                    for removed_item in saved_item_list.keys():
+                        print("- " + removed_item)
         saved_enemy_snapshot = updated_enemy_snapshot.copy()
-        print_snapshot(saved_enemy_snapshot)
     
     time.sleep(1)
