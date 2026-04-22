@@ -91,11 +91,14 @@ while True:
                 if saved_item_counter != updated_item_counter:
                     new_items = updated_item_counter - saved_item_counter
                     removed_items = saved_item_counter - updated_item_counter
+                    # print the amount added or removed if count > 1
                     print(championName + "'s items changed:")
-                    for new_item in new_items.keys():
-                        print("+ " + new_item)
-                    for removed_item in removed_items.keys():
-                        print("- " + removed_item)
+                    for new_item, count in new_items.items():
+                        count = (" x" + count) if count > 1 else ""
+                        print("+ " + new_item + count)
+                    for removed_item, count in removed_items.items():
+                        count = (" x" + count) if count > 1 else ""
+                        print("- " + removed_item + count)
         saved_enemy_snapshot = updated_enemy_snapshot.copy()
     
     time.sleep(1)
