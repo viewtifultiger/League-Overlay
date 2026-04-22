@@ -23,65 +23,62 @@ def build_snapshot(all_players, active_team):
             snapshot[player.get("championName")] = item_list
     return snapshot
 
-# Initiate
-while True:
+def fetch_allgamedata():
     try:
         allgamedata_response = urlopen(allgamedata_url, context = myssl)
         allgamedata_json = json.loads(allgamedata_response.read())
-        break
+        return allgamedata_json
     except (URLError, HTTPError, RemoteDisconnected):
         print("Connection not found.")
         time.sleep(5)
+        return None
+    
+def get_active_teamId(allgamedata_json):
+    active_teamId = None
+    active_player_riotId = allgamedata_json.get("activePlayer").get("riotId")
+    for player in allgamedata_json.get("allPlayers"):
+        if player.get("riotId") == active_player_riotId:
+            active_teamId = player.get("team")
+        return active_teamId
+
+def print_snapshot(snapshot):
+    print("Enemy Team:")
+    for player, item_list in snapshot.items():
+        print("\t" + player)
+        for item in item_list:
+            print("\t\t" + item)
+
+# Initiate
+while True:
+    allgamedata_json = fetch_allgamedata()
+    if allgamedata_json:
+        break
 
 # TeamID
 # BLUE SIDE (TOP TEAM): ORDER
 # RED SIDE (BOTTOM TEAM): CHAOS
 
 # Obtain Active Player ID
-active_player_riotId = allgamedata_json.get("activePlayer").get("riotId")
-active_player_teamId = None
-for player in allgamedata_json.get("allPlayers"):
-    if player.get("riotId") == active_player_riotId:
-        active_player_teamId = player.get("team")
+active_teamId = get_active_teamId(allgamedata_json)
 
 # Build initial enemy team snapshot
-saved_enemy_snapshot = build_snapshot(allgamedata_json.get("allPlayers"), active_player_teamId)
+saved_enemy_snapshot = build_snapshot(allgamedata_json.get("allPlayers"), active_teamId)
 
 # Print Enemies and their Items
-print("Enemy Team:")
-for player, item_list in saved_enemy_snapshot.items():
-    print("\t" + player)
-    for item in item_list:
-        print("\t\t" + item)
+print_snapshot(saved_enemy_snapshot)
 
 # Polling
 while True:
-    #JSON
-    try:
-        allgamedata_response = urlopen(allgamedata_url, context = myssl)
-        allgamedata_json = json.loads(allgamedata_response.read())
-    except (URLError, HTTPError, RemoteDisconnected):
-        #URLError, HTTPError RemoteDisconnected
-        print("Connection not found.")
-        time.sleep(5)
+    allgamedata_json = fetch_allgamedata()
+    if not allgamedata_json:
         continue
 
-    #obtain new teamID
-    for player in allgamedata_json.get("allPlayers"):
-        if player.get("riotId") == active_player_riotId:
-            active_player_teamId = player.get("team")
+    active_teamId = get_active_teamId(allgamedata_json)
 
-    # build updated enemy team snapshot
-    updated_enemy_snapshot = build_snapshot(allgamedata_json.get("allPlayers"), active_player_teamId)
+    updated_enemy_snapshot = build_snapshot(allgamedata_json.get("allPlayers"), active_teamId)
 
-    # Check enemy roster
     if saved_enemy_snapshot != updated_enemy_snapshot:
-        print("Enemy Team:")
         saved_enemy_snapshot = updated_enemy_snapshot.copy()
-        for player, item_list in saved_enemy_snapshot.items():
-            print("\t" + player)
-            for item in item_list:
-                print("\t\t" + item)
+        print_snapshot(saved_enemy_snapshot)
     
-    # add a check to see if items changed and not the champions names
     time.sleep(1)
