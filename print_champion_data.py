@@ -86,16 +86,15 @@ while True:
             pass
         else:
             for championName, item_list in saved_enemy_snapshot.items():
-                saved_item_list = Counter(item_list)
-                updated_item_list = Counter(updated_enemy_snapshot.get(championName))
-                if saved_item_list != updated_item_list:
-                    temp_updated_item_list = updated_item_list.copy()
-                    updated_item_list = updated_item_list - saved_item_list
-                    saved_item_list = saved_item_list - temp_updated_item_list
+                saved_item_counter = Counter(item_list)
+                updated_item_counter = Counter(updated_enemy_snapshot.get(championName))
+                if saved_item_counter != updated_item_counter:
+                    new_items = updated_item_counter - saved_item_counter
+                    removed_items = saved_item_counter - updated_item_counter
                     print(championName + "'s items changed:")
-                    for new_item in updated_item_list.keys():
+                    for new_item in new_items.keys():
                         print("+ " + new_item)
-                    for removed_item in saved_item_list.keys():
+                    for removed_item in removed_items.keys():
                         print("- " + removed_item)
         saved_enemy_snapshot = updated_enemy_snapshot.copy()
     
