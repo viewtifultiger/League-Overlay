@@ -24,6 +24,13 @@ def build_snapshot(all_players, active_team):
             snapshot[player.get("championName")] = item_list
     return snapshot
 
+def build_item_change_event(saved_enemy_snapshot, updated_enemy_snapshot):
+    return {championName: {
+        "new_items": Counter(updated_enemy_snapshot.get(championName)) - Counter(saved_items),
+        "removed_items": Counter(saved_items) - Counter(updated_enemy_snapshot.get(championName)),     
+        } for championName, saved_items in saved_enemy_snapshot.items()
+    }
+
 def fetch_allgamedata():
     try:
         allgamedata_response = urlopen(allgamedata_url, context = myssl)
@@ -85,6 +92,8 @@ while True:
             # roster_changed = saved_roster.symmetric_difference(updated_roster)
             pass
         else:
+            # build item change state
+            build_item_change_event(saved_enemy_snapshot, updated_enemy_snapshot)
             for championName, item_list in saved_enemy_snapshot.items():
                 saved_item_counter = Counter(item_list)
                 updated_item_counter = Counter(updated_enemy_snapshot.get(championName))
@@ -94,10 +103,10 @@ while True:
                     # print the amount added or removed if count > 1
                     print(championName + "'s items changed:")
                     for new_item, count in new_items.items():
-                        count = (" x" + count) if count > 1 else ""
+                        count = (" x" + str(count)) if count > 1 else ""
                         print("+ " + new_item + count)
                     for removed_item, count in removed_items.items():
-                        count = (" x" + count) if count > 1 else ""
+                        count = (" x" + str(count)) if count > 1 else ""
                         print("- " + removed_item + count)
         saved_enemy_snapshot = updated_enemy_snapshot.copy()
     
