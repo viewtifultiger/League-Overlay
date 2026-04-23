@@ -92,22 +92,7 @@ while True:
             # roster_changed = saved_roster.symmetric_difference(updated_roster)
             pass
         else:
-            # build item change state
-            build_item_change_event(saved_enemy_snapshot, updated_enemy_snapshot)
-            for championName, item_list in saved_enemy_snapshot.items():
-                saved_item_counter = Counter(item_list)
-                updated_item_counter = Counter(updated_enemy_snapshot.get(championName))
-                if saved_item_counter != updated_item_counter:
-                    new_items = updated_item_counter - saved_item_counter
-                    removed_items = saved_item_counter - updated_item_counter
-                    # print the amount added or removed if count > 1
-                    print(championName + "'s items changed:")
-                    for new_item, count in new_items.items():
-                        count = (" x" + str(count)) if count > 1 else ""
-                        print("+ " + new_item + count)
-                    for removed_item, count in removed_items.items():
-                        count = (" x" + str(count)) if count > 1 else ""
-                        print("- " + removed_item + count)
+           build_item_change_event(saved_enemy_snapshot, updated_enemy_snapshot)
         saved_enemy_snapshot = updated_enemy_snapshot.copy()
     
     time.sleep(1)
